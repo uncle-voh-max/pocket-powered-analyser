@@ -6,3 +6,5 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     curl \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+
+RUN pip install --no-cache-dir uv

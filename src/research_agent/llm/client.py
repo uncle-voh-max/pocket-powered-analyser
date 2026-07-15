@@ -13,18 +13,24 @@ from research_agent.llm.structured_output import safe_parse
 from research_agent.logging import logger
 
 
+_SUPPORTS_NATIVE_STRUCTURED = {"openai", "anthropic", "google-genai"}
+
+
 def _get_model() -> BaseChatModel:
-    return init_chat_model(
-        settings.llm_model,
-        model_provider=settings.llm_provider,
-        temperature=settings.llm_temperature,
-    )
+    kwargs: dict[str, Any] = {
+        "model": settings.effective_llm_model,
+        "temperature": settings.llm_temperature,
+    }
+
+    if settings.llm_provider == "ollama":
+        kwargs["model_provider"] = "ollama"
+        kwargs["base_url"] = settings.ollama_base_url
+    else:
+        kwargs["model_provider"] = settings.llm_provider
+
+    return init_chat_model(**kwargs)
 
 
-@retry(
-    stop=stop_after_attempt(3),
-    wait=wait_exponential(multiplier=1, min=1, max=10),
-)
 async def llm_call(
     system_prompt: str,
     user_prompt: str,
@@ -37,18 +43,23 @@ async def llm_call(
         HumanMessage(content=user_prompt),
     ]
 
-    if response_model is not None:
+    # Use native structured output only for providers that support it
+    supports_structured = settings.llm_provider in _SUPPORTS_NATIVE_STRUCTURED
+    if response_model is not None and supports_structured:
         model = model.with_structured_output(response_model)
 
     for attempt in range(max_retries):
         try:
             response = await model.ainvoke(messages)
 
-            if response_model is not None:
+            # Native structured output already returns the model instance
+            if response_model is not None and supports_structured:
                 return response
 
             content = response.content if hasattr(response, "content") else str(response)
-            if response_model is not None:
+
+            # Fallback: prompt-based structured parsing (Ollama / unsupported providers)
+            if response_model is not None and not supports_structured:
                 parsed = safe_parse(content, response_model)
                 if parsed is not None:
                     return parsed
@@ -56,11 +67,18 @@ async def llm_call(
                     "llm_parse_retry",
                     attempt=attempt + 1,
                     model=response_model.__name__,
+                    provider=settings.llm_provider,
                 )
                 continue
+
             return content
         except Exception as e:
-            logger.error("llm_call_failed", attempt=attempt + 1, error=str(e))
+            logger.error(
+                "llm_call_failed",
+                attempt=attempt + 1,
+                error=str(e),
+                provider=settings.llm_provider,
+            )
             if attempt == max_retries - 1:
                 raise
 

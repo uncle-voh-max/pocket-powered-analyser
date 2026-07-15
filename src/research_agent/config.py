@@ -14,12 +14,25 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    # LLM
-    openai_api_key: str = Field(default="", alias="OPENAI_API_KEY")
-    llm_model: str = "gpt-4o-mini"
+    # LLM — provider: "openai" or "ollama"
     llm_provider: str = "openai"
+    llm_model: str = "gpt-4o-mini"
     llm_temperature: float = 0.1
     llm_max_retries: int = 3
+
+    # OpenAI
+    openai_api_key: str = Field(default="", alias="OPENAI_API_KEY")
+
+    # Ollama (local)
+    ollama_base_url: str = "http://localhost:11434"
+    ollama_model: str = "llama3.2"
+
+    # Derived helpers
+    @property
+    def effective_llm_model(self) -> str:
+        if self.llm_provider == "ollama":
+            return self.ollama_model
+        return self.llm_model
 
     # Search backends
     bing_news_api_key: str = ""

@@ -1,8 +1,27 @@
+
+
 # Research Agent — Implementation Guide
 
 ## Architecture
 
 See `docs/architecture.md` for the full architecture documentation, graph flow, and extension points.
+
+
+## Engineering principles:
+- Prefer simple, explicit architecture over clever abstractions.
+- Use typed Pydantic models at system boundaries.
+- Keep source adapters pluggable.
+- All external calls must have timeouts, retries, structured errors, and tests.
+- Never hide partial failures.
+- Never fabricate citations or evidence.
+- Treat social media and Reddit as anecdotal unless corroborated.
+- Prefer async IO for network-bound source collection.
+- Keep LLM calls behind interfaces so models/providers can be swapped.
+- All generated reports must distinguish facts, claims, opinions, uncertainty, and limitations.
+- No secrets in code, logs, fixtures, or docs.
+- Add tests for every non-trivial module.
+- Use uv, ruff, mypy/pyright, pytest, and pytest-asyncio.
+- Write code that a staff engineer would be comfortable operating in production.
 
 ## Quick Start
 
