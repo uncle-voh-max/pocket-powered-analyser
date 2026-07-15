@@ -33,7 +33,9 @@ langgraph.db
 
 # Logs & data
 *.log
-data/
+data/research_runs.jsonl
+data/research.db
+data/intermediate/
 !data/.gitkeep
 
 # Testing
@@ -43,3 +45,4 @@ htmlcov/
 *.coverage
 .coverage.*
 coverage.xml
+.xml
