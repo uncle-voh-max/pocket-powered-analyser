@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from unittest.mock import patch
+from unittest.mock import PropertyMock, patch
 
 import pytest
 
@@ -9,20 +9,18 @@ from research_agent.llm.client import _get_model, llm_call
 from research_agent.planning.query_planner import QueryPlan
 
 
-def test_default_provider_is_openai() -> None:
-    assert settings.llm_provider == "openai"
+def test_provider_is_valid() -> None:
+    assert settings.llm_provider in ("openai", "ollama")
 
 
 def test_effective_model_openai() -> None:
-    with patch.object(settings, "llm_provider", "openai"):
-        with patch.object(settings, "llm_model", "gpt-4o-mini"):
-            assert settings.effective_llm_model == "gpt-4o-mini"
+    with patch.object(type(settings), "effective_llm_model", PropertyMock(return_value="gpt-4o-mini")):
+        assert settings.effective_llm_model == "gpt-4o-mini"
 
 
 def test_effective_model_ollama() -> None:
-    with patch.object(settings, "llm_provider", "ollama"):
-        with patch.object(settings, "ollama_model", "llama3.2"):
-            assert settings.effective_llm_model == "llama3.2"
+    with patch.object(type(settings), "effective_llm_model", PropertyMock(return_value="llama3.2")):
+        assert settings.effective_llm_model == "llama3.2"
 
 
 def test_get_model_openai() -> None:

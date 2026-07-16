@@ -33,4 +33,5 @@ async def plan_queries(question: str) -> QueryPlan:
         max_retries=2,
     )
     response.original_question = question
+    print(f"Planned queries for question '{question}': {response}")
     return response

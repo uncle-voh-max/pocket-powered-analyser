@@ -39,6 +39,7 @@ class WikipediaSearchAdapter(BaseSearchAdapter):
                             score=page.get("score", 0) / 1000.0 if page.get("score") else 0.5,
                         )
                     )
+                print(f"Wikipedia search for query returned {results} results")
                 return results
         except httpx.HTTPError:
             return []

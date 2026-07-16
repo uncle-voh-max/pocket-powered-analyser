@@ -31,7 +31,6 @@ from research_agent.graph.state import ResearchState
 
 def build_graph(checkpointer: bool = True) -> CompiledStateGraph:
     workflow = StateGraph(ResearchState)
-
     # Core pipeline
     workflow.add_node("validate_request", validate_request)
     workflow.add_node("plan_queries", plan_queries_node)
@@ -59,15 +58,17 @@ def build_graph(checkpointer: bool = True) -> CompiledStateGraph:
 
     workflow.add_conditional_edges(
         "plan_queries",
-        should_continue_to_search,
-        {
-            "parallel_search": "search_news",
-            "end": END,
-        },
+        should_continue_to_search
     )
 
     # Parallel search fan-out
-    for source_node in ["search_news", "search_web", "search_social", "search_reddit", "search_wikipedia"]:
+    for source_node in [
+    "search_news",
+    "search_web",
+    "search_social",
+    "search_reddit",
+    "search_wikipedia"
+    ]:
         workflow.add_edge(source_node, "fetch_documents")
 
     workflow.add_conditional_edges(

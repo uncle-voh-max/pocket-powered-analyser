@@ -5,16 +5,15 @@ from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import PlainTextResponse
+from prometheus_client import REGISTRY, generate_latest
 from pydantic import BaseModel, Field
-from prometheus_client import generate_latest, REGISTRY
 
 from research_agent.config import settings
 from research_agent.graph.state import ResearchState
 from research_agent.graph.workflow import build_graph
 from research_agent.logging import logger, setup_logging
-from research_agent.storage.jsonl_repository import JSONLRepository
 from research_agent.observability import metrics
-
+from research_agent.storage.jsonl_repository import JSONLRepository
 
 
 class ResearchRequest(BaseModel):

@@ -1,10 +1,20 @@
 from __future__ import annotations
 
+import logging
+import sys
+
 import structlog
 from structlog.processors import JSONRenderer, TimeStamper
 
 
 def setup_logging(debug: bool = False) -> None:
+    level = logging.DEBUG if debug else logging.INFO
+    logging.basicConfig(
+        format="%(message)s",
+        stream=sys.stdout,
+        level=level,
+    )
+
     processors = [
         structlog.stdlib.filter_by_level,
         structlog.stdlib.add_logger_name,
@@ -23,7 +33,7 @@ def setup_logging(debug: bool = False) -> None:
         processors=processors,
         wrapper_class=structlog.stdlib.BoundLogger,
         context_class=dict,
-        logger_factory=structlog.PrintLoggerFactory(),
+        logger_factory=structlog.stdlib.LoggerFactory(),
         cache_logger_on_first_use=True,
     )
 

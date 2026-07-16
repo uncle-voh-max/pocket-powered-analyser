@@ -78,16 +78,20 @@ async def _search_source(
 
 
 async def search_news(state: ResearchState) -> dict[str, Any]:
+    print(f"Searching news for query '{state.query_plan}'")
     results = await _search_source("news", state.query_plan)
     return {"raw_search_results": {"news": results}}
 
 
 async def search_web(state: ResearchState) -> dict[str, Any]:
+    print(f"Searching web for query '{state.query_plan}'")
     results = await _search_source("web", state.query_plan)
+    print(f"Web search for query returned {len(results)} results")
     return {"raw_search_results": {"web": results}}
 
 
 async def search_social(state: ResearchState) -> dict[str, Any]:
+    print(f"Searching social for query '{state.query_plan}'")
     results = await _search_source("social", state.query_plan)
     return {"raw_search_results": {"social": results}}
 
@@ -104,14 +108,16 @@ async def search_wikipedia(state: ResearchState) -> dict[str, Any]:
 
 async def fetch_documents(state: ResearchState) -> dict[str, Any]:
     all_results: list[RawSearchResult] = []
+    print(f"Fetching documents for {state.raw_search_results} sources")
     for results in state.raw_search_results.values():
         all_results.extend(results)
-
+    print(f"Fetching documents for {len(all_results)} search results")
     documents: list[RawDocument] = []
     for result in all_results:
         adapter = _get_adapter(result.source_type)
         try:
             doc = await adapter.fetch(result)
+            print(f"Fetched document from {result.url} with status {doc.status_code}")
             documents.append(doc)
         except Exception as e:
             logger.warning("fetch_failed", url=result.url, error=str(e))
@@ -121,6 +127,7 @@ async def fetch_documents(state: ResearchState) -> dict[str, Any]:
 
 
 async def extract_evidence_node(state: ResearchState) -> dict[str, Any]:
+    print(f"Extracting evidence from {len(state.raw_documents)} documents")
     evidence: list[ExtractedEvidence] = []
     for doc in state.raw_documents:
         try:

@@ -11,6 +11,69 @@ from research_agent.analysis.synthesis import SynthesisResult
 from research_agent.extraction.extractor import ExtractedEvidence
 from research_agent.planning.query_planner import QueryPlan
 
+from collections.abc import Mapping
+
+
+def merge_search_results(
+    left: dict[str, list[RawSearchResult]] | None,
+    right: dict[str, list[RawSearchResult]] | None,
+) -> dict[str, list[RawSearchResult]]:
+    """
+    LangGraph reducer for merging parallel search results.
+
+    Expected branch update shape:
+        {
+            "raw_search_results": {
+                "news": [RawSearchResult(...), ...]
+            }
+        }
+
+    This reducer merges by source key and appends results.
+    """
+
+    merged: dict[str, list[RawSearchResult]] = {}
+
+    def add_side(side: dict[str, list[RawSearchResult]] | None, label: str) -> None:
+        if not side:
+            print(f"[merge_search_results] {label}: empty")
+            return
+
+        if not isinstance(side, Mapping):
+            raise TypeError(
+                f"raw_search_results reducer expected dict[str, list[RawSearchResult]] "
+                f"for {label}, got {type(side)!r}: {side!r}"
+            )
+
+        for source, results in side.items():
+            if results is None:
+                print(f"[merge_search_results] {label}.{source}: None results")
+                continue
+
+            if not isinstance(results, list):
+                raise TypeError(
+                    f"raw_search_results['{source}'] must be a list, "
+                    f"got {type(results)!r}: {results!r}"
+                )
+
+            merged.setdefault(source, [])
+            merged[source].extend(results)
+
+            print(
+                f"[merge_search_results] {label}.{source}: "
+                f"added {len(results)} results"
+            )
+
+    add_side(left, "left")
+    add_side(right, "right")
+
+    total_results = sum(len(results) for results in merged.values())
+
+    print(
+        "[merge_search_results] merged "
+        f"{len(merged)} sources, {total_results} total results"
+    )
+
+    return merged
 
 class ResearchState(BaseModel):
     # Input
@@ -21,7 +84,9 @@ class ResearchState(BaseModel):
 
     # Pipeline outputs
     query_plan: QueryPlan | None = None
-    raw_search_results: dict[str, list[RawSearchResult]] = Field(default_factory=dict)
+    raw_search_results: Annotated[
+        dict[str, list[RawSearchResult]],
+        merge_search_results] = Field(default_factory=dict)
     raw_documents: list[RawDocument] = Field(default_factory=list)
     extracted_evidence: list[ExtractedEvidence] = Field(default_factory=list)
     synthesis: SynthesisResult | None = None

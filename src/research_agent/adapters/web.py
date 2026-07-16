@@ -45,7 +45,7 @@ class WebSearchAdapter(BaseSearchAdapter):
                 )
                 resp.raise_for_status()
                 data = resp.json()
-                return [
+                results = [
                     RawSearchResult(
                         title=r.get("title", ""),
                         url=r.get("url", ""),
@@ -56,6 +56,8 @@ class WebSearchAdapter(BaseSearchAdapter):
                     )
                     for r in data.get("results", [])
                 ]
+            print(f"Web search for query -->returned {results}")
+            return results
         except httpx.HTTPError:
             return []
 

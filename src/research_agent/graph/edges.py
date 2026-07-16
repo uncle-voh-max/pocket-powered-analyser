@@ -1,12 +1,21 @@
 from __future__ import annotations
 
 from research_agent.graph.state import ResearchState
+from langgraph.graph import END
+from typing import Literal
 
 
-def should_continue_to_search(state: ResearchState) -> str:
+def should_continue_to_search(state: ResearchState) -> list[str] | str :
     if state.status == "failed":
-        return "end"
-    return "parallel_search"
+        return END
+    return [
+    "search_news",
+    "search_web",
+    "search_social",
+    "search_reddit",
+    "search_wikipedia"
+    ]
+
 
 
 def should_continue_after_fetch(state: ResearchState) -> str:

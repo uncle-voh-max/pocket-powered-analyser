@@ -17,6 +17,7 @@ class SocialSearchAdapter(BaseSearchAdapter):
 
     async def search_for_query(self, query: str) -> list[RawSearchResult]:
         # Hacker News Algolia search — free, no auth
+        # extend this to other social media platforms as needed
         try:
             async with httpx.AsyncClient(timeout=15) as client:
                 resp = await client.get(
