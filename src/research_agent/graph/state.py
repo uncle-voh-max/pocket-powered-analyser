@@ -35,7 +35,6 @@ def merge_search_results(
 
     def add_side(side: dict[str, list[RawSearchResult]] | None, label: str) -> None:
         if not side:
-            print(f"[merge_search_results] {label}: empty")
             return
 
         if not isinstance(side, Mapping):
@@ -46,7 +45,6 @@ def merge_search_results(
 
         for source, results in side.items():
             if results is None:
-                print(f"[merge_search_results] {label}.{source}: None results")
                 continue
 
             if not isinstance(results, list):
@@ -58,21 +56,8 @@ def merge_search_results(
             merged.setdefault(source, [])
             merged[source].extend(results)
 
-            print(
-                f"[merge_search_results] {label}.{source}: "
-                f"added {len(results)} results"
-            )
-
     add_side(left, "left")
     add_side(right, "right")
-
-    total_results = sum(len(results) for results in merged.values())
-
-    print(
-        "[merge_search_results] merged "
-        f"{len(merged)} sources, {total_results} total results"
-    )
-
     return merged
 
 class ResearchState(BaseModel):
