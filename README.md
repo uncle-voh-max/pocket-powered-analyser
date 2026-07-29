@@ -101,6 +101,8 @@ cp .env.example .env
 # Edit .env to set your preferred LLM provider and any API keys
 ```
 
+> **Tip:** Without API keys the pipeline runs but uses **mock data** for all sources. To search the real web, add at minimum `TAVILY_API_KEY` to `.env`. You can get a free key at [tavily.com](https://tavily.com). Other optional keys (`BING_NEWS_API_KEY`, `REDDIT_CLIENT_ID`/`REDDIT_CLIENT_SECRET`) enable additional sources.
+
 ```bash
 # With uv
 uv sync --extra dev
