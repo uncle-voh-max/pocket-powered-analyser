@@ -94,7 +94,7 @@ All adapters implement `BaseSearchAdapter` with `search()` and `fetch()`. When n
 ### Clone and install
 
 ```bash
-git clone <repo-url> pocket-powered-analyser
+git clone git@github.com:uncle-voh-max/pocket-powered-analyser.git
 cd pocket-powered-analyser
 
 cp .env.example .env
