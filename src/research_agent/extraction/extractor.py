@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from research_agent.adapters.base import RawDocument
 from research_agent.extraction.chunking import chunk_text
@@ -35,6 +35,36 @@ class ExtractedEvidence(BaseModel):
     topics: list[str] = Field(default_factory=list)
     sentiment: str = "unknown"
     limitations: list[str] = Field(default_factory=list)
+
+    @field_validator("key_points", mode="before")
+    @classmethod
+    def coerce_key_points(cls, v: Any) -> list[str]:
+        if not isinstance(v, list):
+            return []
+        result: list[str] = []
+        for item in v:
+            if isinstance(item, str):
+                result.append(item)
+            elif isinstance(item, dict):
+                result.append(item.get("claim", str(item)))
+            else:
+                result.append(str(item))
+        return result
+
+    @field_validator("quotes", "entities", "topics", "limitations", mode="before")
+    @classmethod
+    def coerce_string_lists(cls, v: Any) -> list[str]:
+        if not isinstance(v, list):
+            return []
+        result: list[str] = []
+        for item in v:
+            if isinstance(item, str):
+                result.append(item)
+            elif isinstance(item, dict):
+                result.append(str(item.get("claim", item.get("text", str(item)))))
+            else:
+                result.append(str(item))
+        return result
 
 
 async def extract_evidence(

@@ -9,6 +9,40 @@ from pydantic import BaseModel
 from research_agent.logging import logger
 
 
+def _strip_json_comments(text: str) -> str:
+    """Strip JavaScript-style comments (// and /* */) from JSON text."""
+    # Strip block comments /* ... */ first
+    text = re.sub(r"/\*.*?\*/", "", text, flags=re.DOTALL)
+    # Strip line comments // ... but not inside strings
+    result: list[str] = []
+    in_string = False
+    escape = False
+    i = 0
+    while i < len(text):
+        ch = text[i]
+        if escape:
+            escape = False
+            result.append(ch)
+            i += 1
+        elif ch == "\\" and in_string:
+            escape = True
+            result.append(ch)
+            i += 1
+        elif ch == '"' and not escape:
+            in_string = not in_string
+            result.append(ch)
+            i += 1
+        elif not in_string and ch == "/" and i + 1 < len(text) and text[i + 1] == "/":
+            # Skip to end of line
+            i += 2
+            while i < len(text) and text[i] != "\n":
+                i += 1
+        else:
+            result.append(ch)
+            i += 1
+    return "".join(result)
+
+
 def extract_json(text: str) -> dict[str, Any] | None:
     """Extract JSON from LLM response, handling markdown fences and stray text."""
     # Try ```json ... ``` first
@@ -20,6 +54,9 @@ def extract_json(text: str) -> dict[str, Any] | None:
     m = re.search(r"\{.*\}", text, re.DOTALL)
     if m:
         text = m.group(0)
+
+    # Strip JS-style comments that some LLMs insert
+    text = _strip_json_comments(text)
 
     try:
         return json.loads(text)

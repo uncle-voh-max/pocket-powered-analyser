@@ -28,8 +28,10 @@ def _get_model() -> BaseChatModel:
     if settings.llm_provider == "ollama":
         kwargs["model_provider"] = "ollama"
         kwargs["base_url"] = settings.ollama_base_url
+        kwargs["num_predict"] = 8192
     else:
         kwargs["model_provider"] = settings.llm_provider
+        kwargs["max_tokens"] = 4096
     return init_chat_model(**kwargs)
 
 
