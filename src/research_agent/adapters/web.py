@@ -28,10 +28,15 @@ class WebSearchAdapter(BaseSearchAdapter):
             },
         )
 
-    async def search_for_query(self, query: str) -> list[RawSearchResult]:
+    async def search_for_query(
+        self,
+        query: str,
+        max_results: int | None = None,
+    ) -> list[RawSearchResult]:
         # Uses Tavily if key is available, otherwise returns empty
         if not settings.tavily_api_key:
             return []
+        limit = max_results if max_results is not None else settings.max_results_per_source
         try:
             async with httpx.AsyncClient(timeout=15) as client:
                 resp = await client.post(
@@ -40,7 +45,7 @@ class WebSearchAdapter(BaseSearchAdapter):
                         "api_key": settings.tavily_api_key,
                         "query": query,
                         "search_depth": "advanced",
-                        "max_results": settings.max_results_per_source,
+                        "max_results": limit,
                     },
                 )
                 resp.raise_for_status()
@@ -60,8 +65,12 @@ class WebSearchAdapter(BaseSearchAdapter):
         except httpx.HTTPError:
             return []
 
-    async def search(self, plan: SearchPlan) -> list[RawSearchResult]:
-        return await self.search_all_queries(plan)
+    async def search(
+        self,
+        plan: SearchPlan,
+        max_results: int | None = None,
+    ) -> list[RawSearchResult]:
+        return await self.search_all_queries(plan, max_results=max_results)
 
     async def fetch(self, result: RawSearchResult) -> RawDocument:
         assert_safe_url(result.url)

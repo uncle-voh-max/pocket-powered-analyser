@@ -9,7 +9,11 @@ from research_agent.planning.query_planner import SearchPlan
 class MockNewsAdapter(BaseSearchAdapter):
     source_type = "news"
 
-    async def search_for_query(self, query: str) -> list[RawSearchResult]:
+    async def search_for_query(
+        self,
+        query: str,
+        max_results: int | None = None,
+    ) -> list[RawSearchResult]:
         return [
             RawSearchResult(
                 title=f"News: Latest developments related to '{query}'",
@@ -34,8 +38,12 @@ class MockNewsAdapter(BaseSearchAdapter):
             ),
         ]
 
-    async def search(self, plan: SearchPlan) -> list[RawSearchResult]:
-        return await self.search_all_queries(plan)
+    async def search(
+        self,
+        plan: SearchPlan,
+        max_results: int | None = None,
+    ) -> list[RawSearchResult]:
+        return await self.search_all_queries(plan, max_results=max_results)
 
     async def fetch(self, result: RawSearchResult) -> RawDocument:
         return RawDocument(
@@ -54,7 +62,11 @@ class MockNewsAdapter(BaseSearchAdapter):
 class MockWebAdapter(BaseSearchAdapter):
     source_type = "web"
 
-    async def search_for_query(self, query: str) -> list[RawSearchResult]:
+    async def search_for_query(
+        self,
+        query: str,
+        max_results: int | None = None,
+    ) -> list[RawSearchResult]:
         return [
             RawSearchResult(
                 title=f"Complete Guide to {query}",
@@ -79,8 +91,12 @@ class MockWebAdapter(BaseSearchAdapter):
             ),
         ]
 
-    async def search(self, plan: SearchPlan) -> list[RawSearchResult]:
-        return await self.search_all_queries(plan)
+    async def search(
+        self,
+        plan: SearchPlan,
+        max_results: int | None = None,
+    ) -> list[RawSearchResult]:
+        return await self.search_all_queries(plan, max_results=max_results)
 
     async def fetch(self, result: RawSearchResult) -> RawDocument:
         return RawDocument(
@@ -98,7 +114,11 @@ class MockWebAdapter(BaseSearchAdapter):
 class MockRedditAdapter(BaseSearchAdapter):
     source_type = "reddit"
 
-    async def search_for_query(self, query: str) -> list[RawSearchResult]:
+    async def search_for_query(
+        self,
+        query: str,
+        max_results: int | None = None,
+    ) -> list[RawSearchResult]:
         return [
             RawSearchResult(
                 title=f"r/technology: What does everyone think about {query}?",
@@ -112,8 +132,12 @@ class MockRedditAdapter(BaseSearchAdapter):
             ),
         ]
 
-    async def search(self, plan: SearchPlan) -> list[RawSearchResult]:
-        return await self.search_all_queries(plan)
+    async def search(
+        self,
+        plan: SearchPlan,
+        max_results: int | None = None,
+    ) -> list[RawSearchResult]:
+        return await self.search_all_queries(plan, max_results=max_results)
 
     async def fetch(self, result: RawSearchResult) -> RawDocument:
         return RawDocument(
@@ -133,7 +157,11 @@ class MockRedditAdapter(BaseSearchAdapter):
 class MockSocialAdapter(BaseSearchAdapter):
     source_type = "social"
 
-    async def search_for_query(self, query: str) -> list[RawSearchResult]:
+    async def search_for_query(
+        self,
+        query: str,
+        max_results: int | None = None,
+    ) -> list[RawSearchResult]:
         return [
             RawSearchResult(
                 title=f"Post about {query}",
@@ -147,8 +175,12 @@ class MockSocialAdapter(BaseSearchAdapter):
             ),
         ]
 
-    async def search(self, plan: SearchPlan) -> list[RawSearchResult]:
-        return await self.search_all_queries(plan)
+    async def search(
+        self,
+        plan: SearchPlan,
+        max_results: int | None = None,
+    ) -> list[RawSearchResult]:
+        return await self.search_all_queries(plan, max_results=max_results)
 
     async def fetch(self, result: RawSearchResult) -> RawDocument:
         return RawDocument(
@@ -164,7 +196,11 @@ class MockSocialAdapter(BaseSearchAdapter):
 class MockWikipediaAdapter(BaseSearchAdapter):
     source_type = "wikipedia"
 
-    async def search_for_query(self, query: str) -> list[RawSearchResult]:
+    async def search_for_query(
+        self,
+        query: str,
+        max_results: int | None = None,
+    ) -> list[RawSearchResult]:
         return [
             RawSearchResult(
                 title=f"{query} - Wikipedia",
@@ -177,8 +213,12 @@ class MockWikipediaAdapter(BaseSearchAdapter):
             ),
         ]
 
-    async def search(self, plan: SearchPlan) -> list[RawSearchResult]:
-        return await self.search_all_queries(plan)
+    async def search(
+        self,
+        plan: SearchPlan,
+        max_results: int | None = None,
+    ) -> list[RawSearchResult]:
+        return await self.search_all_queries(plan, max_results=max_results)
 
     async def fetch(self, result: RawSearchResult) -> RawDocument:
         return RawDocument(
