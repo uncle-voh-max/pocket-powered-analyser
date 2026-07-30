@@ -10,7 +10,12 @@ class WikipediaSearchAdapter(BaseSearchAdapter):
     source_type = "wikipedia"
     BASE_URL = "https://en.wikipedia.org/w/api.php"
 
-    async def search_for_query(self, query: str) -> list[RawSearchResult]:
+    async def search_for_query(
+        self,
+        query: str,
+        max_results: int | None = None,
+    ) -> list[RawSearchResult]:
+        limit = max_results if max_results is not None else 5
         try:
             async with httpx.AsyncClient(timeout=15) as client:
                 resp = await client.get(
@@ -20,7 +25,7 @@ class WikipediaSearchAdapter(BaseSearchAdapter):
                         "list": "search",
                         "srsearch": query,
                         "format": "json",
-                        "srlimit": 5,
+                        "srlimit": limit,
                         "srprop": "snippet|titlesnippet",
                     },
                 )
@@ -43,8 +48,12 @@ class WikipediaSearchAdapter(BaseSearchAdapter):
         except httpx.HTTPError:
             return []
 
-    async def search(self, plan: SearchPlan) -> list[RawSearchResult]:
-        return await self.search_all_queries(plan)
+    async def search(
+        self,
+        plan: SearchPlan,
+        max_results: int | None = None,
+    ) -> list[RawSearchResult]:
+        return await self.search_all_queries(plan, max_results=max_results)
 
     async def fetch(self, result: RawSearchResult) -> RawDocument:
         page_title = result.url.split("/wiki/")[-1].replace("_", " ") if "/wiki/" in result.url else result.title

@@ -15,14 +15,19 @@ class SocialSearchAdapter(BaseSearchAdapter):
 
     source_type = "social"
 
-    async def search_for_query(self, query: str) -> list[RawSearchResult]:
+    async def search_for_query(
+        self,
+        query: str,
+        max_results: int | None = None,
+    ) -> list[RawSearchResult]:
         # Hacker News Algolia search — free, no auth
         # extend this to other social media platforms as needed
+        limit = max_results if max_results is not None else 5
         try:
             async with httpx.AsyncClient(timeout=15) as client:
                 resp = await client.get(
                     "https://hn.algolia.com/api/v1/search",
-                    params={"query": query, "hitsPerPage": 5, "tags": "story"},
+                    params={"query": query, "hitsPerPage": limit, "tags": "story"},
                 )
                 resp.raise_for_status()
                 data = resp.json()
@@ -44,8 +49,12 @@ class SocialSearchAdapter(BaseSearchAdapter):
         except httpx.HTTPError:
             return []
 
-    async def search(self, plan: SearchPlan) -> list[RawSearchResult]:
-        return await self.search_all_queries(plan)
+    async def search(
+        self,
+        plan: SearchPlan,
+        max_results: int | None = None,
+    ) -> list[RawSearchResult]:
+        return await self.search_all_queries(plan, max_results=max_results)
 
     async def fetch(self, result: RawSearchResult) -> RawDocument:
         import re

@@ -26,9 +26,14 @@ class RedditSearchAdapter(BaseSearchAdapter):
         except httpx.HTTPError:
             return None
 
-    async def search_for_query(self, query: str) -> list[RawSearchResult]:
+    async def search_for_query(
+        self,
+        query: str,
+        max_results: int | None = None,
+    ) -> list[RawSearchResult]:
         if not settings.has_reddit_creds:
             return []
+        limit = max_results if max_results is not None else 10
         try:
             async with httpx.AsyncClient(timeout=15) as client:
                 token = await self._get_auth_token(client)
@@ -41,7 +46,7 @@ class RedditSearchAdapter(BaseSearchAdapter):
                 resp = await client.get(
                     "https://oauth.reddit.com/search",
                     headers=headers,
-                    params={"q": query, "limit": 10, "sort": "relevance"},
+                    params={"q": query, "limit": limit, "sort": "relevance"},
                 )
                 resp.raise_for_status()
                 data = resp.json()
@@ -66,8 +71,12 @@ class RedditSearchAdapter(BaseSearchAdapter):
         except httpx.HTTPError:
             return []
 
-    async def search(self, plan: SearchPlan) -> list[RawSearchResult]:
-        return await self.search_all_queries(plan)
+    async def search(
+        self,
+        plan: SearchPlan,
+        max_results: int | None = None,
+    ) -> list[RawSearchResult]:
+        return await self.search_all_queries(plan, max_results=max_results)
 
     async def fetch(self, result: RawSearchResult) -> RawDocument:
         import re

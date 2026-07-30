@@ -10,9 +10,14 @@ from research_agent.planning.query_planner import SearchPlan
 class NewsSearchAdapter(BaseSearchAdapter):
     source_type = "news"
 
-    async def search_for_query(self, query: str) -> list[RawSearchResult]:
+    async def search_for_query(
+        self,
+        query: str,
+        max_results: int | None = None,
+    ) -> list[RawSearchResult]:
         if not settings.bing_news_api_key:
             return []
+        limit = max_results if max_results is not None else settings.max_results_per_source
         try:
             async with httpx.AsyncClient(timeout=15) as client:
                 resp = await client.get(
@@ -20,7 +25,7 @@ class NewsSearchAdapter(BaseSearchAdapter):
                     headers={"Ocp-Apim-Subscription-Key": settings.bing_news_api_key},
                     params={
                         "q": query,
-                        "count": settings.max_results_per_source,
+                        "count": limit,
                         "freshness": "Week",
                         "mkt": "en-US",
                     },
@@ -45,8 +50,12 @@ class NewsSearchAdapter(BaseSearchAdapter):
         except httpx.HTTPError:
             return []
 
-    async def search(self, plan: SearchPlan) -> list[RawSearchResult]:
-        return await self.search_all_queries(plan)
+    async def search(
+        self,
+        plan: SearchPlan,
+        max_results: int | None = None,
+    ) -> list[RawSearchResult]:
+        return await self.search_all_queries(plan, max_results=max_results)
 
     async def fetch(self, result: RawSearchResult) -> RawDocument:
         from research_agent.adapters.web import WebSearchAdapter

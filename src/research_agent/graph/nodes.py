@@ -67,38 +67,39 @@ def _get_adapter(source_type: str) -> BaseSearchAdapter:
 async def _search_source(
     source_type: str,
     plan: QueryPlan | None,
+    max_results: int = 10,
 ) -> list[RawSearchResult]:
     empty_plan = QueryPlan(original_question="", research_objective="")
     qp = plan or empty_plan
 
     adapter = _get_adapter(source_type)
-    results = await adapter.search(qp.search_plan)
+    results = await adapter.search(qp.search_plan, max_results=max_results)
     logger.info("source_search_complete", source=source_type, count=len(results))
     return results
 
 
 async def search_news(state: ResearchState) -> dict[str, Any]:
-    results = await _search_source("news", state.query_plan)
+    results = await _search_source("news", state.query_plan, max_results=state.max_results_per_source)
     return {"raw_search_results": {"news": results}}
 
 
 async def search_web(state: ResearchState) -> dict[str, Any]:
-    results = await _search_source("web", state.query_plan)
+    results = await _search_source("web", state.query_plan, max_results=state.max_results_per_source)
     return {"raw_search_results": {"web": results}}
 
 
 async def search_social(state: ResearchState) -> dict[str, Any]:
-    results = await _search_source("social", state.query_plan)
+    results = await _search_source("social", state.query_plan, max_results=state.max_results_per_source)
     return {"raw_search_results": {"social": results}}
 
 
 async def search_reddit(state: ResearchState) -> dict[str, Any]:
-    results = await _search_source("reddit", state.query_plan)
+    results = await _search_source("reddit", state.query_plan, max_results=state.max_results_per_source)
     return {"raw_search_results": {"reddit": results}}
 
 
 async def search_wikipedia(state: ResearchState) -> dict[str, Any]:
-    results = await _search_source("wikipedia", state.query_plan)
+    results = await _search_source("wikipedia", state.query_plan, max_results=state.max_results_per_source)
     return {"raw_search_results": {"wikipedia": results}}
 
 
@@ -196,6 +197,9 @@ async def fallback_search(state: ResearchState) -> dict[str, Any]:
     missing = [s for s in state.include_sources if s not in state.raw_search_results]
     for source in missing:
         mock = get_mock_adapter(source)
-        results = await mock.search(state.query_plan.search_plan if state.query_plan else None)  # type: ignore[arg-type]
+        results = await mock.search(
+            state.query_plan.search_plan if state.query_plan else None,  # type: ignore[arg-type]
+            max_results=state.max_results_per_source,
+        )
         state.raw_search_results[source] = results
     return {}
